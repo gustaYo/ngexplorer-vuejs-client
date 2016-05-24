@@ -1,0 +1,314 @@
+<template>
+	<div class="col-md-3">
+		<ul class="list-group">
+			<li  v-bind:class="[ftp._id === activeTab ? 'active' : '']" class="list-group-item" v-for="ftp in ftpList" @click="OpenFtpTab(ftp)">
+				{{ ftp.name }}
+			</li>            
+		</ul>
+	</div>
+	<div class="col-md-9">
+		<div class="alert alert-info" v-if="tabsFtp.length === 0">
+			<strong>Hola!</strong> Selecciona un proveedor para comenzar
+		</div>
+		<div v-if="tabsFtp.length > 0">
+			<div class='well-sm'>
+				<div class="btn-group">
+					<button @click="MoveTo(-1)" type="button" class="btn btn-default"><span class="glyphicon glyphicon-chevron-up"></span></button>
+					<button @click="[filter.active = !filter.active]" type="button" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
+
+					<div class="input-group" v-show="filter.active">
+						<input class="form-control" type="text" placeholder="filtro" v-model="filter.name" @keyup="FilterFileFolder() | debounce 300">
+						<span class="input-group-addon">Filtrar</span>
+					</div>
+				</div>
+
+				<div class="btn-group" v-show="!filter.active">
+					<div class="btn-group" v-for="dir in urlDir">
+						<button @click="MoveTo($index)" type="button" class="btn btn-primary" >{{decodeURIComponent(dir)}}/</button>
+						<dropdown v-if="$index < urlDir.length - 1" @click="openSubFolders($index)">
+							<tooltip
+							effect="scale"
+							placement="top"
+							content="Directorios contenidos">
+							<button type="button" class="btn btn-default" data-toggle="dropdown">
+								<span class="caret"></span>
+							</button>
+						</tooltip>						
+						<ul slot="dropdown-menu" class="dropdown-menu">
+							<li v-for="subf in subfolders"><a  @click="FindFolder(subf)">{{ decodeURIComponent(subf.name) }}</a></li>
+						</ul>
+					</dropdown>
+				</div>
+			</div>
+		</div>
+		<ul class="nav nav-tabs">
+			<li @click="OpenFtpTab(tab)" v-bind:class="[tab._id === activeTab ? 'active' : '']" v-for="tab in tabsFtp"><a>{{ tab.name }}  <button v-if="tabsFtp.length > 1" @click="CloseTab($index)" type="button" class="close" data-dismiss="alert" aria-hidden="true"> &times;</button></a></li>
+		</ul>
+		<div class="tab-content" style="height: 70vh;overflow: auto">
+			<div class="tab-pane" v-bind:class="[tab._id === activeTab ? 'active' : '']"  v-for="tab in tabsFtp">           
+				<table class="table">
+					<thead>
+						<tr>
+							<th @click="sortedFiles()">Name <span style="float: right" class="glyphicon" v-bind:class="[tab.sort === 1 ? 'glyphicon-arrow-up' : 'glyphicon-arrow-down']"></span></th>
+							<th>Size</th>
+						</tr>
+					</thead>
+					<tbody>
+						<tr v-for="file in tab.files"  @click="FindFolder(file)">
+							<td>
+								<div class="directory">
+									<span class="glyphicon" v-bind:class="[file.extname ? typeFileIcon(file.extname) : 'glyphicon-folder-close']" ></span>                                    
+									<label>{{ decodeURIComponent(file.name) }}</label>
+								</div>
+							</td>
+							<td class="text-right">
+								{{ FileSizeConvert(file.size) }}
+							</td>
+						</tr>
+					</tbody>
+				</table>
+
+			</div>
+		</div>   
+	</div>
+
+</div>
+
+
+</template>
+
+
+<script>
+	/**
+	 * @example navbar demos
+	 * @for navbar
+	 * @description
+	 */
+
+
+	 module.exports = {
+	 	data: function() {
+	 		return {
+	 			ftpList: [],
+	 			tabsFtp: [],
+	 			activeTab: 0,
+	 			urlDir: [],
+	 			filter: {
+	 				active: false
+	 			},
+	 			subfolders:[]
+	 		};
+	 	},
+	 	components: {     
+	 		'dropdown': require('vue-strap').dropdown,
+	 		'tooltip': require('vue-strap').tooltip
+	 	},
+	 	props: {
+	 	},
+	 	computed: {
+	 	},
+	 	methods: {
+	 		sortedFiles: function() {
+	 			serviceFtp.gestfiles();
+	 			var tabPost = this.FoundTab(this.activeTab);
+	 			var sort = this.tabsFtp[tabPost].sort;
+	 			var sorFiles = this.tabsFtp[tabPost].files.slice(0).sort(function(a, b) {
+	 				if (a.name < b.name) {
+	 					return sort === 1 ? -1 : 1;
+	 				} else {
+	 					return sort === 1 ? 1 : -1;
+	 				}
+	 			});
+	 			this.tabsFtp[tabPost].sort = sort === 1 ? -1 : 1;
+	 			this.tabsFtp[tabPost].files = sorFiles;
+	 		},
+	 		typeFileIcon: function(extname) {
+	 			var icon = '';
+	 			switch (extname) {
+	 				case '.mpg':
+	 				icon = 'glyphicon-film';
+	 				break;
+	 				case '.mp4':
+	 				icon = 'glyphicon-film';
+	 				break;
+	 				case '.pdf':
+	 				icon = 'glyphicon-book';
+	 				break;
+	 				case '.jpg':
+	 				icon = 'glyphicon-picture';
+	 				break;
+	 				default:
+	 				icon = 'glyphicon-file';
+	 			}
+	 			return icon;
+	 		}
+	 		,
+	 		fileFolder: function(file) {
+	 			return typeof file.extname === 'undefined';
+	 		},
+	 		openSubFolders:function(index){
+	 			var dir=""; 
+	 			if (index !== this.urlDir.length - 1) {
+	 				var index = index + 1 - this.urlDir.length;
+	 				dir = this.urlDir.slice(0, index);
+	 			}
+	 			dir = dir.join('/');
+	 			if (dir === '')
+	 				dir = '/';
+	 			var parms = {"directory": dir, "ftp": this.activeTab};
+	 			this.$http.post('http://ngexplorer-beta.prod.uci.cu/ftp/files', parms, function(res) {
+	 				var subfloders = new Array();
+                for (var i in res) {
+                    if (this.fileFolder(res[i])) {
+                        subfloders.push(res[i])
+                    }
+                }
+                this.subfolders=subfloders;
+	 			});
+	 		},
+	 		getFtpsServer: function() {
+	 			this.$http.get('http://ngexplorer-beta.prod.uci.cu/ftp/api/%7B%22type%22:%22ftps%22%7D',
+	 				function(data) {
+	 					this.ftpList = data;
+	 				}
+	 				);
+	 		},
+	 		FoundTab: function(id) {
+	 			for (var i in this.tabsFtp) {
+	 				if (this.tabsFtp[i]._id === id) {
+	 					return i;
+	 				}
+	 			}
+	 			return false;
+	 		},
+	 		FileSizeConvert: function(size) {
+	 			var retorn = parseFloat(size / 1024 / 1024).toFixed(2);
+	 			var s = " MB";
+	 			if (retorn >= 1024) {
+				// convertir a gigas
+				retorn = parseFloat(retorn / 1024).toFixed(2);
+				s = " GB";
+			}
+			return retorn == 'NaN' ? 'none' : retorn + s;
+		},
+		decodeURIComponent: function(string) {
+			var name = string;
+			try {
+				name = decodeURIComponent(name);
+			} catch (e) {
+
+			}
+			return name;
+		},
+		OpenFtpTab: function(ftp) {
+			var post = this.FoundTab(ftp._id);
+			this.activeTab = ftp._id;
+			if (post) {
+				this.UpdatePath(this.tabsFtp[post].directory);
+			} else {
+				var tab = {
+					_id: ftp._id,
+					name: ftp.name,
+					uri: ftp.uri,
+					dirscan: ftp.dirscan,
+					active: 'active',
+					files: [],
+					type: ftp.type,
+					sort: 1
+				};
+				this.tabsFtp.push(tab);
+				this.FindFolder(ftp);
+			}
+		},
+		OpenInNewTab: function(pathRecur) {
+			var post = this.FoundTab(this.activeTab);
+			var url = this.tabsFtp[post].type === 'ftp' ? 'ftp://' : '';
+			var win = window.open(url + this.tabsFtp[post].uri + pathRecur, '_blank');
+			win.focus();
+		},
+		CloseTab: function(index) {
+			this.tabsFtp.splice(index, 1);
+			this.activeTab = this.tabsFtp[this.tabsFtp.length - 1]._id;
+			localStorage.setItem('ngVueExplorer-tabs', JSON.stringify(this.tabsFtp));
+			this.UpdatePath(this.tabsFtp[this.tabsFtp.length - 1].directory);
+		},
+		MoveTo: function(index) {
+			if (index !== -1) {
+				if (index !== this.urlDir.length - 1) {
+					var index = index + 1 - this.urlDir.length;
+					this.urlDir = this.urlDir.slice(0, index);
+				}
+			} else {
+				this.urlDir = this.urlDir.slice(0, index);
+			}
+			var dir = this.urlDir.join('/');
+			if (dir === '')
+				dir = '/';
+			var parms = {"directory": dir, "ftp": this.activeTab};
+			this.GetFilesParms(parms, this.activeTab);
+		},
+		FindFolder: function(node) {
+			var dir = '';
+			if (typeof node.dirscan !== 'undefined') {
+				dir = node.dirscan;
+			} else {
+				dir = node.directory;
+				var join = '/'
+				if (dir === '/') {
+					join = '';
+				}
+				dir = dir + join + node.name;
+			}
+			if (!this.fileFolder(node)) {
+				this.OpenInNewTab(dir);
+			} else {
+				var parms = {"directory": dir, "ftp": this.activeTab};
+				this.filter.active = false;
+				this.GetFilesParms(parms, this.activeTab);
+			}
+		},
+		UpdatePath: function(dir) {
+			if (!this.filter.active) {
+				if (dir === "/") {
+					dir = [""];
+				} else {
+					dir = dir.split('/');
+				}
+				this.$set('urlDir', dir);
+				localStorage.setItem('ngVueExplorer-urlDir', JSON.stringify(dir));
+				localStorage.setItem('ngVueExplorer-tabs', JSON.stringify(this.tabsFtp));
+			}
+		},
+		FilterFileFolder: function() {
+			var parms = {
+				type: 'file',
+				ftps: [this.activeTab],
+				name: this.filter.name
+			}
+			this.GetFilesParms(parms, this.activeTab);
+		},
+		GetFilesParms: function(parms, tab) {
+			this.$http.post('http://ngexplorer-beta.prod.uci.cu/ftp/files', parms, function(files) {
+				var post = this.FoundTab(tab);
+				this.tabsFtp[post].files = files;
+				this.tabsFtp[post].directory = parms.directory;
+				this.UpdatePath(parms.directory);
+			});
+		}
+	},
+	watch: {
+		activeTab: function(newVal, oldVal) {
+			localStorage.setItem('ngVueExplorer-activeTab', newVal);
+		}
+	},
+	created: function() {
+		if (localStorage.getItem('ngVueExplorer-tabs')) {
+			this.tabsFtp = JSON.parse(localStorage.getItem('ngVueExplorer-tabs'));
+			this.activeTab = localStorage.getItem('ngVueExplorer-activeTab');
+			this.urlDir = JSON.parse(localStorage.getItem('ngVueExplorer-urlDir'));
+		}
+		this.getFtpsServer();        
+		console.log(window.navigator)
+	}
+};
+</script>
