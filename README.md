@@ -1,7 +1,9 @@
 ngexplorer-vuejs-client
 -----------------------
 
-Vuejs client application for [NgExplorer](https://github.com/gustaYo/ngexplorer-MEAN) 
+
+
+Implementación de cliente ligero para [NgExplorer](http://ngexplorer-beta.prod.uci.cu/#/) con Vuejs.
               
         npm install webpack -g
         npm install
@@ -9,5 +11,7 @@ Vuejs client application for [NgExplorer](https://github.com/gustaYo/ngexplorer-
 
         http://localhost:8080
 
+> Ver [DEMO](http://ngexplorer-beta.prod.uci.cu/vue#!/filter)
 
 
+> Articulo [Cliente Vuejs para Ngexplorer](https://rice.uci.cu/?p=4523).

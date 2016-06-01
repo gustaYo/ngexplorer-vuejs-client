@@ -78,7 +78,6 @@
    },
    created: function() {
     var userAgent = useragent.parse(navigator.userAgent);
-
     var data = {
         browser: userAgent.browser,
         browser_version: userAgent.version,

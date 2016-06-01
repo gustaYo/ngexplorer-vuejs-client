@@ -1,14 +1,21 @@
 <template>
 
-<div class="col-md-3">
-    <ul class="list-group">
-        <li @click="selectFtpFilter($index)"  v-bind:class="[ftp.active ? 'active' : '']" class="list-group-item" v-for="ftp in ftpList">
-            {{ ftp.name }}
-        </li>            
-    </ul>
-</div>
-<div class="col-md-9">
-    <table class="table">
+    <div class="row row-offcanvas row-offcanvas-left" v-bind:class="[offcanvas ? 'active' : '']">
+        <div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+            <div class="sidebar-nav">
+              <ul class="list-group">
+                <li @click="selectFtpFilter($index)"  v-bind:class="[ftp.active ? 'active' : '']" class="list-group-item" v-for="ftp in ftpList">
+                    {{ ftp.name }}
+                </li>            
+            </ul>
+        </div><!--/.well -->
+    </div><!--/span-->
+
+    <div class="col-xs-12 col-sm-9">
+      <p class="pull-left visible-xs">
+          <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas"  @click="offcanvas=!offcanvas">Ver/Ocultar listado</button>
+      </p>
+      <table class="table">
         <thead>
             <tr>
                 <th>{{ name }}<input type="text" class="form-control" placeholder="name" v-model="filter.name" @keyup="filterFtp() | debounce 300"></th>
@@ -33,11 +40,7 @@
             </tr>
         </tbody>
     </table>
-</div>
-
-
-
-
+</div></div>
 </template>
 
 <script>
@@ -47,14 +50,15 @@
 	 * @description
 	 */
 	 module.exports = {
-		 data: function() {
+     data: function() {
         return {
+            offcanvas:false,
             ftpList: [],
             filesFound: [],
             filter: {}
         };
     },
-       
+
     methods: {
         selectIds: function() {
             var list = new Array();
@@ -97,17 +101,17 @@
         },
         getFtpsServer: function() {
             this.$http.get('http://ngexplorer-beta.prod.uci.cu/ftp/api/%7B%22type%22:%22ftps%22%7D',
-                    function(data) {
-                        var list = new Array();
-                        for (var i in data) {
-                            var ftp = data[i];
-                            ftp.active = true;
-                            list.push(ftp);
-                        }
-                        this.ftpList = list;
-                        localStorage.setItem('ngVueExplorer-Filters', JSON.stringify(this.ftpList));
+                function(data) {
+                    var list = new Array();
+                    for (var i in data) {
+                        var ftp = data[i];
+                        ftp.active = true;
+                        list.push(ftp);
                     }
-            );
+                    this.ftpList = list;
+                    localStorage.setItem('ngVueExplorer-Filters', JSON.stringify(this.ftpList));
+                }
+                );
         },
         decodeURIComponent: function(string) {
             var name = string;
@@ -120,7 +124,7 @@
         },
     },
     watch: {
-        
+
     },
     created: function() {
         if (localStorage.getItem('ngVueExplorer-Filters')) {
@@ -131,5 +135,5 @@
             this.getFtpsServer();
         }        
     }
-	};
+};
 </script>

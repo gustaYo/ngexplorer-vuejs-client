@@ -1,82 +1,87 @@
 <template>
-	<div class="col-md-3">
-		<ul class="list-group">
-			<li  v-bind:class="[ftp._id === activeTab ? 'active' : '']" class="list-group-item" v-for="ftp in ftpList" @click="OpenFtpTab(ftp)">
-				{{ ftp.name }}
-			</li>            
-		</ul>
-	</div>
-	<div class="col-md-9">
-		<div class="alert alert-info" v-if="tabsFtp.length === 0">
-			<strong>Hola!</strong> Selecciona un proveedor para comenzar
-		</div>
-		<div v-if="tabsFtp.length > 0">
-			<div class='well-sm'>
-				<div class="btn-group">
-					<button @click="MoveTo(-1)" type="button" class="btn btn-default"><span class="glyphicon glyphicon-chevron-up"></span></button>
-					<button @click="[filter.active = !filter.active]" type="button" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
+	<div class="row row-offcanvas row-offcanvas-left" v-bind:class="[offcanvas ? 'active' : '']">
+		<div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
+			<div class="sidebar-nav">
+				<ul class="list-group">
+					<li  v-bind:class="[ftp._id === activeTab ? 'active' : '']" class="list-group-item" v-for="ftp in ftpList" @click="OpenFtpTab(ftp)">
+						{{ ftp.name }}
+					</li>            
+				</ul>
+			</div><!--/.well -->
+		</div><!--/span--> 
 
-					<div class="input-group" v-show="filter.active">
-						<input class="form-control" type="text" placeholder="filtro" v-model="filter.name" @keyup="FilterFileFolder() | debounce 300">
-						<span class="input-group-addon">Filtrar</span>
+		<div class="col-xs-12 col-sm-9">
+
+			<p class="pull-left visible-xs">
+				<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas"  @click="offcanvas=!offcanvas">Ver/Ocultar listado</button>
+			</p>
+			<div class="alert alert-info" v-if="tabsFtp.length === 0">
+				<strong>Hola!</strong> Selecciona un proveedor para comenzar
+			</div>
+			<div v-if="tabsFtp.length > 0">
+				<div class='well-sm'>
+					<div class="btn-group">
+						<button @click="MoveTo(-1)" type="button" class="btn btn-default"><span class="glyphicon glyphicon-chevron-up"></span></button>
+						<button @click="[filter.active = !filter.active]" type="button" class="btn btn-default"><span class="glyphicon glyphicon-search"></span></button>
+
+						<div class="input-group" v-show="filter.active">
+							<input class="form-control" type="text" placeholder="filtro" v-model="filter.name" @keyup="FilterFileFolder() | debounce 300">
+							<span class="input-group-addon">Filtrar</span>
+						</div>
+					</div>
+
+					<div class="btn-group" v-show="!filter.active">
+						<div class="btn-group" v-for="dir in urlDir">
+							<button @click="MoveTo($index)" type="button" class="btn btn-primary" >{{decodeURIComponent(dir)}}/</button>
+							<dropdown v-if="$index < urlDir.length - 1" @click="openSubFolders($index)">
+								<tooltip
+								effect="scale"
+								placement="top"
+								content="Directorios contenidos">
+								<button type="button" class="btn btn-default" data-toggle="dropdown">
+									<span class="caret"></span>
+								</button>
+							</tooltip>						
+							<ul slot="dropdown-menu" class="dropdown-menu">
+								<li v-for="subf in subfolders"><a  @click="FindFolder(subf)">{{ decodeURIComponent(subf.name) }}</a></li>
+							</ul>
+						</dropdown>
 					</div>
 				</div>
+			</div>
+			<ul class="nav nav-tabs">
+				<li @click="OpenFtpTab(tab)" v-bind:class="[tab._id === activeTab ? 'active' : '']" v-for="tab in tabsFtp"><a>{{ tab.name }}  <button v-if="tabsFtp.length > 1" @click="CloseTab($index)" type="button" class="close" data-dismiss="alert" aria-hidden="true"> &times;</button></a></li>
+			</ul>
+			<div class="tab-content" style="height: 70vh;overflow: auto">
+				<div class="tab-pane" v-bind:class="[tab._id === activeTab ? 'active' : '']"  v-for="tab in tabsFtp">           
+					<table class="table">
+						<thead>
+							<tr>
+								<th @click="sortedFiles()">Name <span style="float: right" class="glyphicon" v-bind:class="[tab.sort === 1 ? 'glyphicon-arrow-up' : 'glyphicon-arrow-down']"></span></th>
+								<th>Size</th>
+							</tr>
+						</thead>
+						<tbody>
+							<tr v-for="file in tab.files"  @click="FindFolder(file)">
+								<td>
+									<div class="directory">
+										<span class="glyphicon" v-bind:class="[file.extname ? typeFileIcon(file.extname) : 'glyphicon-folder-close']" ></span>                                    
+										<label>{{ decodeURIComponent(file.name) }}</label>
+									</div>
+								</td>
+								<td class="text-right">
+									{{ FileSizeConvert(file.size) }}
+								</td>
+							</tr>
+						</tbody>
+					</table>
 
-				<div class="btn-group" v-show="!filter.active">
-					<div class="btn-group" v-for="dir in urlDir">
-						<button @click="MoveTo($index)" type="button" class="btn btn-primary" >{{decodeURIComponent(dir)}}/</button>
-						<dropdown v-if="$index < urlDir.length - 1" @click="openSubFolders($index)">
-							<tooltip
-							effect="scale"
-							placement="top"
-							content="Directorios contenidos">
-							<button type="button" class="btn btn-default" data-toggle="dropdown">
-								<span class="caret"></span>
-							</button>
-						</tooltip>						
-						<ul slot="dropdown-menu" class="dropdown-menu">
-							<li v-for="subf in subfolders"><a  @click="FindFolder(subf)">{{ decodeURIComponent(subf.name) }}</a></li>
-						</ul>
-					</dropdown>
 				</div>
-			</div>
+			</div>   
 		</div>
-		<ul class="nav nav-tabs">
-			<li @click="OpenFtpTab(tab)" v-bind:class="[tab._id === activeTab ? 'active' : '']" v-for="tab in tabsFtp"><a>{{ tab.name }}  <button v-if="tabsFtp.length > 1" @click="CloseTab($index)" type="button" class="close" data-dismiss="alert" aria-hidden="true"> &times;</button></a></li>
-		</ul>
-		<div class="tab-content" style="height: 70vh;overflow: auto">
-			<div class="tab-pane" v-bind:class="[tab._id === activeTab ? 'active' : '']"  v-for="tab in tabsFtp">           
-				<table class="table">
-					<thead>
-						<tr>
-							<th @click="sortedFiles()">Name <span style="float: right" class="glyphicon" v-bind:class="[tab.sort === 1 ? 'glyphicon-arrow-up' : 'glyphicon-arrow-down']"></span></th>
-							<th>Size</th>
-						</tr>
-					</thead>
-					<tbody>
-						<tr v-for="file in tab.files"  @click="FindFolder(file)">
-							<td>
-								<div class="directory">
-									<span class="glyphicon" v-bind:class="[file.extname ? typeFileIcon(file.extname) : 'glyphicon-folder-close']" ></span>                                    
-									<label>{{ decodeURIComponent(file.name) }}</label>
-								</div>
-							</td>
-							<td class="text-right">
-								{{ FileSizeConvert(file.size) }}
-							</td>
-						</tr>
-					</tbody>
-				</table>
-
-			</div>
-		</div>   
-	</div>
-
+	</div> 
 </div>
-
-
 </template>
-
 
 <script>
 	/**
@@ -89,6 +94,7 @@
 	 module.exports = {
 	 	data: function() {
 	 		return {
+	 			offcanvas:false,
 	 			ftpList: [],
 	 			tabsFtp: [],
 	 			activeTab: 0,
@@ -109,7 +115,6 @@
 	 	},
 	 	methods: {
 	 		sortedFiles: function() {
-	 			serviceFtp.gestfiles();
 	 			var tabPost = this.FoundTab(this.activeTab);
 	 			var sort = this.tabsFtp[tabPost].sort;
 	 			var sorFiles = this.tabsFtp[tabPost].files.slice(0).sort(function(a, b) {
@@ -158,12 +163,12 @@
 	 			var parms = {"directory": dir, "ftp": this.activeTab};
 	 			this.$http.post('http://ngexplorer-beta.prod.uci.cu/ftp/files', parms, function(res) {
 	 				var subfloders = new Array();
-                for (var i in res) {
-                    if (this.fileFolder(res[i])) {
-                        subfloders.push(res[i])
-                    }
-                }
-                this.subfolders=subfloders;
+	 				for (var i in res) {
+	 					if (this.fileFolder(res[i])) {
+	 						subfloders.push(res[i])
+	 					}
+	 				}
+	 				this.subfolders=subfloders;
 	 			});
 	 		},
 	 		getFtpsServer: function() {
@@ -266,6 +271,7 @@
 				this.filter.active = false;
 				this.GetFilesParms(parms, this.activeTab);
 			}
+			this.getSizeFolder(node);
 		},
 		UpdatePath: function(dir) {
 			if (!this.filter.active) {
@@ -294,6 +300,14 @@
 				this.tabsFtp[post].directory = parms.directory;
 				this.UpdatePath(parms.directory);
 			});
+
+		},
+		getSizeFolder:function(node){
+			if (typeof node.size === 'undefined') {
+				this.$http.get('http://ngexplorer-beta.prod.uci.cu/ftp/filescount', node, function(result) {
+					console.log(result);
+				});
+			}
 		}
 	},
 	watch: {
@@ -307,8 +321,7 @@
 			this.activeTab = localStorage.getItem('ngVueExplorer-activeTab');
 			this.urlDir = JSON.parse(localStorage.getItem('ngVueExplorer-urlDir'));
 		}
-		this.getFtpsServer();        
-		console.log(window.navigator)
+		this.getFtpsServer();
 	}
 };
 </script>
