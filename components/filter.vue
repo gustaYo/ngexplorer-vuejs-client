@@ -18,29 +18,32 @@
       <table class="table">
         <thead>
             <tr>
-                <th>{{ name }}<input type="text" class="form-control" placeholder="name" v-model="filter.name" @keyup="filterFtp() | debounce 300"></th>
-                <th><input type="text" class="form-control" placeholder="extname" v-model="filter.extname" @keyup="filterFtp() | debounce 300"></th>
-                <th>Ftp</th>
-            </tr>
-        </thead>
-        <tbody>
-            <tr v-for="file in filesFound">
-                <td>
-                    <div class="directory">
-                        <i class="fa" v-bind:class="[file.extname ? 'fa-file-o' : 'fa-folder-o']"></i>
-                        <a href="{{ file.baseURl + '/' + file.name}}" target="_blanck">{{ decodeURIComponent(file.name) }}</a>
-                    </div>
-                </td>
-                <td>
-                    {{ file.extname }}
-                </td>
-                <td>
-                    <a href="{{ file.baseURl }}" target="_blanck">{{ file.ftpname }}</a>                    
-                </td>                
-            </tr>
-        </tbody>
-    </table>
-</div></div>
+                <th>{{ name }}<input type="text" class="form-control" placeholder="name"
+                     v-model="filter.name" 
+                    @keyup="filterFtp() | debounce 300"                    
+                    ></th>
+                    <th><input type="text" class="form-control" placeholder="extname" v-model="filter.extname" @keyup="filterFtp() | debounce 300"></th>
+                    <th>Ftp</th>
+                </tr>
+            </thead>
+            <tbody>
+                <tr v-for="file in filesFound">
+                    <td>
+                        <div class="directory">
+                            <i class="fa" v-bind:class="[file.extname ? 'fa-file-o' : 'fa-folder-o']"></i>
+                            <a href="{{ file.baseURl + '/' + file.name}}" target="_blanck">{{ decodeURIComponent(file.name) }}</a>
+                        </div>
+                    </td>
+                    <td>
+                        {{ file.extname }}
+                    </td>
+                    <td>
+                        <a href="{{ file.baseURl }}" target="_blanck">{{ file.ftpname }}</a>                    
+                    </td>                
+                </tr>
+            </tbody>
+        </table>
+    </div></div>
 </template>
 
 <script>
@@ -50,12 +53,15 @@
 	 * @description
 	 */
 	 module.exports = {
-     data: function() {
+       data: function() {
         return {
             offcanvas:false,
             ftpList: [],
             filesFound: [],
-            filter: {}
+            filter: {
+                name:'',
+                extname:''
+            }
         };
     },
 
@@ -78,7 +84,7 @@
         },
         filterFtp: function() {
             var parms = {"type": "file", "ftps": this.selectIds(), "name": this.filter.name, extname: this.filter.extname}
-            this.$http.post('http://ngexplorer-beta.prod.uci.cu/ftp/files', parms, function(files) {
+            this.$http.post(localStorage.getItem('ngVueExplorer-serverRun')+'/ftp/files', parms, function(files) {
                 var result = new Array();
                 for (var i in files) {
                     var file = files[i];
@@ -100,7 +106,7 @@
             this.filterFtp();
         },
         getFtpsServer: function() {
-            this.$http.get('http://ngexplorer-beta.prod.uci.cu/ftp/api/%7B%22type%22:%22ftps%22%7D',
+            this.$http.get(localStorage.getItem('ngVueExplorer-serverRun')+'/ftp/api/%7B%22type%22:%22ftps%22%7D',
                 function(data) {
                     var list = new Array();
                     for (var i in data) {
@@ -133,7 +139,9 @@
             this.filesFound = JSON.parse(localStorage.getItem('ngVueExplorer-filesFound'));
         } else {
             this.getFtpsServer();
-        }        
+
+        }
+
     }
 };
 </script>

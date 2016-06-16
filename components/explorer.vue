@@ -50,7 +50,7 @@
 				</div>
 			</div>
 			<ul class="nav nav-tabs">
-				<li @click="OpenFtpTab(tab)" v-bind:class="[tab._id === activeTab ? 'active' : '']" v-for="tab in tabsFtp"><a>{{ tab.name }}  <button v-if="tabsFtp.length > 1" @click="CloseTab($index)" type="button" class="close" data-dismiss="alert" aria-hidden="true"> &times;</button></a></li>
+				<li @click="OpenFtpTab(tab)" v-bind:class="[tab._id === activeTab ? 'active' : '']" v-for="tab in tabsFtp"><a>{{ tab.name }}  <button v-if="tabsFtp.length > 1" @click="CloseTab($index)" type="button" class="close" data-dismiss="alert" aria-hidden="true"> &#10007;</button></a></li>
 			</ul>
 			<div class="tab-content" style="height: 70vh;overflow: auto">
 				<div class="tab-pane" v-bind:class="[tab._id === activeTab ? 'active' : '']"  v-for="tab in tabsFtp">           
@@ -161,7 +161,7 @@
 	 			if (dir === '')
 	 				dir = '/';
 	 			var parms = {"directory": dir, "ftp": this.activeTab};
-	 			this.$http.post('http://ngexplorer-beta.prod.uci.cu/ftp/files', parms, function(res) {
+	 			this.$http.post(localStorage.getItem('ngVueExplorer-serverRun')+'/ftp/files', parms, function(res) {
 	 				var subfloders = new Array();
 	 				for (var i in res) {
 	 					if (this.fileFolder(res[i])) {
@@ -172,7 +172,7 @@
 	 			});
 	 		},
 	 		getFtpsServer: function() {
-	 			this.$http.get('http://ngexplorer-beta.prod.uci.cu/ftp/api/%7B%22type%22:%22ftps%22%7D',
+	 			this.$http.get(localStorage.getItem('ngVueExplorer-serverRun')+'/ftp/api/list',
 	 				function(data) {
 	 					this.ftpList = data;
 	 				}
@@ -270,8 +270,11 @@
 				var parms = {"directory": dir, "ftp": this.activeTab};
 				this.filter.active = false;
 				this.GetFilesParms(parms, this.activeTab);
-			}
-			this.getSizeFolder(node);
+				if (typeof node.dirscan === 'undefined') {
+					this.getSizeFolder(node);
+				}
+			}			
+			
 		},
 		UpdatePath: function(dir) {
 			if (!this.filter.active) {
@@ -294,7 +297,7 @@
 			this.GetFilesParms(parms, this.activeTab);
 		},
 		GetFilesParms: function(parms, tab) {
-			this.$http.post('http://ngexplorer-beta.prod.uci.cu/ftp/files', parms, function(files) {
+			this.$http.post(localStorage.getItem('ngVueExplorer-serverRun')+'/ftp/files', parms, function(files) {
 				var post = this.FoundTab(tab);
 				this.tabsFtp[post].files = files;
 				this.tabsFtp[post].directory = parms.directory;
@@ -304,7 +307,7 @@
 		},
 		getSizeFolder:function(node){
 			if (typeof node.size === 'undefined') {
-				this.$http.get('http://ngexplorer-beta.prod.uci.cu/ftp/filescount', node, function(result) {
+				this.$http.get(localStorage.getItem('ngVueExplorer-serverRun')+'/ftp/filescount', node, function(result) {
 					console.log(result);
 				});
 			}

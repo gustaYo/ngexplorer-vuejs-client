@@ -7,20 +7,34 @@ Vue.use(VueRouter);
 // Set up a new router
 var router = new VueRouter();
 
+// definiendo ruta server
+var serverRun=localStorage.getItem('ngVueExplorer-serverRun')
+if (!serverRun) {
+   var prod = "http://"+window.location.hostname;
+   var dev="http://ngexplorer-beta.prod.uci.cu"
+   localStorage.setItem('ngVueExplorer-serverRun',dev)
+}
+
 // Route config
 router.map({
     '/home': {
         name: 'home',
-        component: require('./components/home.vue')
-    },
-     '/explorer': {
-        name: 'explorer',
-        component: require('./components/explorer.vue')
-    },
-    '/filter': {
-        name: 'filter',
-        component: require('./components/filter.vue')
-    },
+        component: function (resolve) {
+          require(['./components/home.vue'], resolve)
+      },
+  },
+  '/explorer': {
+    name: 'explorer',
+    component: function (resolve) {
+      require(['./components/explorer.vue'], resolve)
+  },
+},
+'/filter': {
+    name: 'filter',
+    component: function (resolve) {
+      require(['./components/filter.vue'], resolve)
+  },
+},
 });
 // For every new route scroll to the top of the page
 router.beforeEach(function() {
