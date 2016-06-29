@@ -1,8 +1,19 @@
 var Vue = require('vue');
-var VueRouter = require('vue-router')
+var VueRouter = require('vue-router');
+var Moment = require('moment');
 Vue.config.debug = true;
 Vue.use(require('vue-resource'));
 Vue.use(VueRouter);
+
+Vue.filter('moment', function (date,format) {   
+   return Moment(parseInt(date)).format(format);
+})
+
+Vue.transition('entern',{
+  enterClass: 'pulse',
+  leaveClass: 'invisible'
+})
+
 
 // Set up a new router
 var router = new VueRouter();

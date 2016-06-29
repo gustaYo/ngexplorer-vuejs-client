@@ -4,6 +4,7 @@
 	<meta charset="UTF-8">
 	<meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, minimum-scale=1.0, user-scalable=0 ">
 	<link type="text/css" rel="stylesheet" href="build/bootstrap-3.3.6-dist/css/bootstrap.min.css"  media="screen,projection"/>
+	<link type="text/css" rel="stylesheet" href="build/animate.min.css"  media="screen,projection"/>
 	<title>ngexplorer</title>
 </head>
 <body>
@@ -22,7 +23,19 @@
 		}
 
 
+		
+		.fade-transiton:{
+			transition: all 3s ease;
+		}
+		.fade-enter, .fade-leave{
+			opacity: 0
+			transform: translate3d(10px, 0, 0);
+		}
 
+		.invisible{
+			display: none
+		}
+	
 /*
  * Off Canvas
  * --------------------------------------------------

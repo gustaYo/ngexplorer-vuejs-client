@@ -1,4 +1,7 @@
 <template>
+<div class="col-xs-12 col-sm-12">
+    
+
     <div class="jumbotron">
         <div class="row">
             <div class="col-sm-6 col-md-3">
@@ -16,13 +19,15 @@
         </div>
     </div>
     <div id="footer">
-        <div class="container">
+        <div class="container" style="text-align: center;">
             <div class="copyrights">
                 <div class="row" id="copyright-note">
                  <p class="text-muted credit">© 2016 <a href="https://codecomunidades.prod.uci.cu/u/gcrespo">Gustavo Crespo Sanchez</a> gcrespo@uci.cu</p>
              </div>
          </div>        
      </div>
+ </div>
+
  </div>
 </template>
 

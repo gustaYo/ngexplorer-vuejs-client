@@ -58,7 +58,7 @@
     </div>
   </modal>
   <div>
-    <router-view ></router-view> 
+    <router-view class="animated" transition="entern"></router-view> 
   </div>
 </template>
 
