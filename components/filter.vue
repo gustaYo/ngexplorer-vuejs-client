@@ -11,10 +11,7 @@
         </div><!--/.well -->
     </div><!--/span-->
 
-    <div class="col-xs-12 col-sm-9">
-      <p class="pull-left visible-xs">
-          <button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas"  @click="offcanvas=!offcanvas">Ver/Ocultar listado</button>
-      </p>
+    <div class="col-xs-12 col-sm-9">    
       <table class="table">
         <thead>
             <tr>
@@ -64,6 +61,11 @@
             }
         };
     },
+    events:{
+            'offcanvas' : function(data){
+                this.offcanvas=data
+            }
+        },
 
     methods: {
         selectIds: function() {
@@ -141,6 +143,7 @@
             this.getFtpsServer();
 
         }
+        this.offcanvas=JSON.parse(localStorage.getItem('ngVueExplorer-offcanvas'));
 
     }
 };

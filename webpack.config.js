@@ -4,7 +4,7 @@ var webpack = require('webpack');
 module.exports = {
     entry: './main.js',
     output: {
-        filename: './build/bundle.js',
+        filename: './build/ngexplorerVuejsClient.js',
     },
     module: {
         loaders: [

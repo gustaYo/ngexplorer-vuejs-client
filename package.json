@@ -4,14 +4,18 @@
   "author": "gustavo crespo sanchez <gcrespo@uci.cu>",
   "private": true,
   "scripts": {
-    "dev": "webpack-dev-server --inline --hot",
+    "dev": "webpack-dev-server --inline --port 3000 --hot --host 0.0.0.0",
     "build": "cross-env NODE_ENV=production webpack --progress --hide-modules --optimize-minimize"
   },
   "dependencies": {
     "babel-runtime": "^6.0.0",
+    "css-loader": "^0.23.1",
     "express-useragent": "^0.2.4",
     "moment": "^2.13.0",
+    "script-loader": "^0.7.0",
+    "style-loader": "^0.13.1",
     "vue": "^1.0.24",
+    "vue-charts": "^0.1.14",
     "vue-resource": "^0.1.16",
     "vue-router": "^0.7.13",
     "vue-strap": "^1.0.11"
@@ -27,6 +31,7 @@
     "file-loader": "^0.8.4",
     "json-loader": "^0.5.4",
     "url-loader": "^0.5.7",
+    "vue-charts": "^0.1.14",
     "vue-hot-reload-api": "^1.2.0",
     "vue-html-loader": "^1.0.0",
     "vue-loader": "^8.2.1",

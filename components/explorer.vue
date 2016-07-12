@@ -3,7 +3,7 @@
 		<div class="col-xs-6 col-sm-3 sidebar-offcanvas" id="sidebar" role="navigation">
 			<div class="sidebar-nav">
 				<ul class="list-group">
-					<li transition="listanim"  v-bind:class="[ftp._id === activeTab ? 'active' : '']" class="list-group-item" v-for="ftp in ftpList" @click="OpenFtpTab(ftp)">
+					<li v-bind:class="[ftp._id === activeTab ? 'active' : '']" class="list-group-item" v-for="ftp in ftpList" @click="OpenFtpTab(ftp)">
 						{{ ftp.name }}
 					</li>            
 				</ul>
@@ -11,10 +11,6 @@
 		</div><!--/span--> 
 
 		<div class="col-xs-12 col-sm-9">
-
-			<p class="pull-left visible-xs">
-				<button type="button" class="btn btn-primary btn-xs" data-toggle="offcanvas"  @click="offcanvas=!offcanvas">Ver/Ocultar listado</button>
-			</p>
 			<div class="alert alert-info" v-if="tabsFtp.length === 0">
 				<strong>Hola!</strong> Selecciona un proveedor para comenzar
 			</div>
@@ -134,10 +130,15 @@
 			return retorn == 'NaN' ? 'none' : retorn + s;
 		}
 	},
-	components: {     
+	components: {
 		'dropdown': require('vue-strap').dropdown,
 		'tooltip': require('vue-strap').tooltip
 	},
+	events:{
+			'offcanvas' : function(data){
+				this.offcanvas=data
+			}
+		},
 	props: {
 	},
 	computed: {
@@ -351,6 +352,7 @@
 			this.urlDir = JSON.parse(localStorage.getItem('ngVueExplorer-urlDir'));
 		}
 		this.getFtpsServer();
+		this.offcanvas=JSON.parse(localStorage.getItem('ngVueExplorer-offcanvas'));
 	}
 };
 
